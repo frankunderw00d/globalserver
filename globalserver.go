@@ -13,8 +13,8 @@ func init() {
 	if err := database.InitializeMySQL(
 		"frank",
 		"frank123",
-		"localhost",
-		7000,
+		"mysql-service",
+		3306,
 		"jarvis",
 	); err != nil {
 		log.Panicf("Initialize MySQL error : %s", err.Error())
