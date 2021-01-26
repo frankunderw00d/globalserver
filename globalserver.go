@@ -13,8 +13,8 @@ func init() {
 	if err := database.InitializeMySQL(
 		"frank",
 		"frank123",
-		"localhost",
-		7000,
+		"mysql-service",
+		3306,
 		"jarvis",
 	); err != nil {
 		log.Panicf("Initialize MySQL error : %s", err.Error())
@@ -25,15 +25,15 @@ func init() {
 	database.SetUpMySQL(time.Minute*time.Duration(5), 10, 30)
 
 	// 初始化 Redis
-	database.InitializeRedis(time.Minute*time.Duration(5), 10, 30, "localhost", 8000, "frank123")
+	database.InitializeRedis(time.Minute*time.Duration(5), 10, 30, "redis-service", 6379, "frank123")
 
 	// 初始化 Mongo
 	if err := database.InitializeMongo(
 		"frank",
 		"frank123",
 		"jarvis",
-		"localhost",
-		9000, time.Minute*time.Duration(5), 30); err != nil {
+		"mongo-service",
+		27017, time.Minute*time.Duration(5), 30); err != nil {
 		log.Panicf("Initialize Mongo error : %s", err.Error())
 		return
 	}
