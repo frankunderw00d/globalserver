@@ -5,7 +5,7 @@ import (
 	"jarvis/base/database"
 	"jarvis/base/database/redis"
 	uTime "jarvis/util/time"
-	"log"
+	"jarvis/base/log"
 	"time"
 )
 
@@ -18,7 +18,7 @@ func init() {
 		3306,
 		"jarvis",
 	); err != nil {
-		log.Panicf("Initialize MySQL error : %s", err.Error())
+		log.FatalF("Initialize MySQL error : %s", err.Error())
 		return
 	}
 
@@ -35,7 +35,7 @@ func init() {
 		"jarvis",
 		"mongo-service",
 		27017, time.Minute*time.Duration(5), 30); err != nil {
-		log.Panicf("Initialize Mongo error : %s", err.Error())
+		log.FatalF("Initialize Mongo error : %s", err.Error())
 		return
 	}
 }
