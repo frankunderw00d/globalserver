@@ -1,12 +1,12 @@
 package main
 
 import (
-	logModule "globalserver/module/log"
+	"baseservice/common/remoteLogHook"
 	"globalserver/module/platform"
+	"io"
 	"jarvis/base/database"
 	"jarvis/base/database/redis"
 	"jarvis/base/log"
-	"jarvis/base/network"
 	uTime "jarvis/util/time"
 	"os"
 	"os/signal"
@@ -15,24 +15,23 @@ import (
 )
 
 const (
-	// 自定义服务最大连接数量
-	CustomMaxConnection = 5000
-	// 自定义服务消息管道大小
-	CustomIntoStreamSize = 10000
-	// 日志 Socket 接收地址
-	LogSocketAddress = ":10000"
+	// 远程日志聚合地址
+	LogRemoteAddress = "logserver:10000"
 )
 
 var (
-	service network.Service
+	lh io.WriteCloser
 )
 
 func init() {
-	// 实例化服务
-	service = network.NewService(
-		CustomMaxConnection,
-		CustomIntoStreamSize,
-	)
+	// 新建远程日志钩子
+	nlh, err := remoteLogHook.NewSocketRemoteHook(LogRemoteAddress)
+	if err != nil {
+		log.FatalF("New remote hook error : %s", err.Error())
+		return
+	}
+	lh = nlh
+	log.SetHook(lh)
 
 	// 初始化 MySQL
 	if err := database.InitializeMySQL(
@@ -69,21 +68,6 @@ func main() {
 	ticker := uTime.NewTicker(time.Duration(30)*time.Minute, platform.LoadPlatformInfo)
 	ticker.Run()
 
-	// 2.注册模块
-	if err := service.RegisterModule(logModule.NewModule()); err != nil {
-		log.ErrorF("Register module error : %s", err)
-		return
-	}
-
-	// 3.启动
-	if err := service.Run(
-		network.NewSocketGate(LogSocketAddress), // Socket 入口
-	); err != nil {
-		log.ErrorF("Register observer error : %s", err)
-		return
-	}
-
-	// 4.监听系统信号
 	monitorSystemSignal()
 }
 
@@ -94,6 +78,8 @@ func monitorSystemSignal() {
 	signal.Notify(sc, syscall.SIGQUIT)
 	select {
 	case <-sc:
+	case <-sc:
+		_ = lh.Close()
 		log.InfoF("Done")
 	}
 }
