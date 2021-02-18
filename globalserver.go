@@ -79,7 +79,7 @@ func monitorSystemSignal() {
 	select {
 	case <-sc:
 	case <-sc:
-		_ = lh.Close()
 		log.InfoF("Done")
+		_ = lh.Close()
 	}
 }
